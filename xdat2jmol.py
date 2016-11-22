@@ -30,7 +30,7 @@ def xdat2jmol(npt, l):
             lat = np.array(xbuff[k + 2: k + 5], float)
             pos = np.array(xbuff[k + 8: k + 8 + nat], float)
             xyz = np.dot(pos, lat)
-            if i % l == 0 or i == 0:
+            if i % l == 0:
                 f.write(str(nat) + '\n')
                 f.write('xdat\n')
                 for i in range(len(xyz)):
@@ -43,7 +43,7 @@ def xdat2jmol(npt, l):
             k = 7 + i * (1 + nat)
             pos = np.array(xbuff[k + 1: k + 1 + nat], float)
             xyz = np.dot(pos, lat)
-            if i % l == 0 or i == 0:
+            if i % l == 0:
                 f.write(str(nat) + '\n')
                 f.write('xdat\n')
                 for i in range(len(xyz)):
