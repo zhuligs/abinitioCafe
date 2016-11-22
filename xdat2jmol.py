@@ -1,9 +1,10 @@
 #!/usr/bin/python -u
 
 import numpy as np
+from optparse import OptionParser
 
 
-def xdat2jmol():
+def xdat2jmol(npt):
     xbuff = []
     with open('XDATCAR') as f:
         for line in f:
@@ -23,18 +24,35 @@ def xdat2jmol():
             nconf += 1
 
     f = open('xdat.xyz', 'w')
-    for i in range(nconf):
-        k = i * (8 + nat)
-        lat = np.array(xbuff[k + 2: k + 5], float)
-        pos = np.array(xbuff[k + 8: k + 8 + nat], float)
-        xyz = np.dot(pos, lat)
-        f.write(str(nat) + '\n')
-        f.write('xdat\n')
-        for i in range(len(xyz)):
-            f.write("%2s %15.9f %15.9f %15.9f\n" % (symbs[i], xyz[i][0], xyz[i][1], xyz[i][2]))
+    if npt:
+        for i in range(nconf):
+            k = i * (8 + nat)
+            lat = np.array(xbuff[k + 2: k + 5], float)
+            pos = np.array(xbuff[k + 8: k + 8 + nat], float)
+            xyz = np.dot(pos, lat)
+            f.write(str(nat) + '\n')
+            f.write('xdat\n')
+            for i in range(len(xyz)):
+                f.write("%2s %15.9f %15.9f %15.9f\n" % (symbs[i], xyz[i][0], xyz[i][1], xyz[i][2]))
 
-    f.close()
+        f.close()
+    else:
+        lat = np.array(xbuff[2: 5], float)
+        for i in range(nconf):
+            k = 7 + i * (1 + nat)
+            pos = np.array(xbuff[k + 1: k + 1 + nat], float)
+            xyz = np.dot(pos, lat)
+            f.write(str(nat) + '\n')
+            f.write('xdat\n')
+            for i in range(len(xyz)):
+                f.write("%2s %15.9f %15.9f %15.9f\n" % (symbs[i], xyz[i][0], xyz[i][1], xyz[i][2]))
+        f.close()
 
 
 if __name__ == "__main__":
-    xdat2jmol()
+    parser = OptionParser()
+    parser.set_defaults(is_npt=False)
+    parser.add_option("-p", dest="is_npt", action="store_true")
+    (options, args) = parser.parse_args()
+    xdat2jmol(options.is_npt)
+
