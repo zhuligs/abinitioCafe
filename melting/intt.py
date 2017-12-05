@@ -5,12 +5,15 @@ import scipy.optimize as opt
 import numpy as np
 import pylab as plt
 from mpl_toolkits.mplot3d import Axes3D
+from copy import deepcopy as cp
 
 
 # def foa(T1, T2, T3):
 
-def twoD_Gaussian( (x, y), amplitude, xo, yo, sigma_x, sigma_y, theta, offset ):
+def twoD_Gaussian( x, y, amplitude, xo, yo, sigma_x, sigma_y, ):
     # print 'ssx,', sigma_x
+    theta = 0.0
+    offset = 0.0
     xo = float(xo)
     yo = float(yo)    
     a = (np.cos(theta)**2)/(2*sigma_x**2) + (np.sin(theta)**2)/(2*sigma_y**2)
@@ -21,101 +24,101 @@ def twoD_Gaussian( (x, y), amplitude, xo, yo, sigma_x, sigma_y, theta, offset ):
     return g.ravel()
 
 
-x = np.arange(-12.5, 12.5, 0.01)
-y = np.arange(-12.5, 12.5, 0.01)
-x, y = np.meshgrid(x, y)
+def get_sigma(T1, T2, T3):
+    difft = []
+    for i in range(1, 10000):
+        sx = i * 0.01
+        dt = twoD_Gaussian(12.5, 0, T1, 0, 0, sx, 10)
+        ddt = abs(dt[0] - T2)
+        difft.append([ddt, sx])
+    sdiff = sorted(difft, key=lambda x:x[0])
+    sigma_x = sdiff[0][1]
 
-# X = np.arange(0, 250, 1)
-# Y = np.arange(0, 250, 1)
-xxx, yyy = np.meshgrid(np.linspace(-12.5,12.5,2500), np.linspace(-12.5,12.5,2500))
-X = xxx
-Y = yyy
-print X
-Z = xxx*0.0
-# Y = y 
-zz = x * 0.0
-Zs = []
-for i in range(6):
-    Zs.append(zz + i*1.0)
-
-t = 0
-sx = 20.7
-sy = 28.2
-
-
-# for i in range(1, 1000):
-#     sy = i*0.1
-#     print sy, twoD_Gaussian( (0, 12.5), 3000, 0, 0, sx, sy, t, 0)
-
-print twoD_Gaussian( (12.5, 0), 3000, 0, 0, sx, sy, t, 0)
-print twoD_Gaussian( (0, 12.5), 3000, 0, 0, sx, sy, t, 0)
-print twoD_Gaussian( (5, 5), 3000, 0, 0, sx, sy, t, 0)
-
-data0 = twoD_Gaussian((x, y), 3000, 0, 0, sx, sy, 0, 0)
-data1 = data0*0.95
-# data2 = twoD_Gaussian((x, y), 3000, 0, 0, sx, sy, 0, 0)*0.6
-data2 = data0*0.9 
-data3 = data0*0.8
-data4 = data0*0.7
-data5 = data0*0.6
-datas= [data0, data1, data2, data3,data4, data5]
-
-# plt.figure()
-# plt.imshow(data.reshape(250, 250))
-norm = plt.cm.colors.Normalize(vmax=3000, vmin=1500)
-
-fig = plt.figure()
-
-ax0 = fig.add_subplot(121)
-ax0.imshow(data0.reshape(2500, 2500), cmap=plt.cm.jet, norm=norm, extent=[-12.5, 12.5, -12.5,12.5])
-Z = data0.reshape(2500, 2500)
-Z2 = data3.reshape(2500, 2500)
-print data0.reshape(2500, 2500)
-ax = fig.add_subplot(122, projection='3d')
-min1 = min(data0)
-min2 = max(data0)
-nn = 16
-
-delt = (min2-min1)/nn
-levs=[]
-for i in range(nn+1):
-    levs.append(min1+i*delt)
-# ax.plot_surface(X, Y, Z, cmap=plt.cm.jet, norm=norm, shade=False)
-cset = ax.contourf(X, Y, Z, zdir='z', levels=levs, offset = 0, norm=norm, cmap=plt.cm.jet)
-cset = ax.contourf(X, Y, Z2, zdir='z', offset = 3, norm=norm, cmap=plt.cm.jet)
-ax.set_zlim3d(-1,5)
-# for i in range(6):
-#     Z = Zs[i]
-#     data = datas[i]
-#     ax.plot_surface(X, Y, Z, facecolors=plt.cm.jet(data0.reshape(250, 250)), shade=False)
+    difft = []
+    for i in range(1, 10000):
+        sy = i * 0.01
+        dt = twoD_Gaussian(0, 12.5, T1, 0, 0, 10, sy)
+        ddt = abs(dt[0] - T3)
+        difft.append([ddt, sy])
+    sdiff = sorted(difft, key=lambda x:x[0])
+    sigma_y = sdiff[0][1]
+    return (sigma_x, sigma_y)
 
 
-# plt.subplot(5,1,1)
-# plt.imshow(data1.reshape(250, 250), norm=norm, cmap=plt.cm.jet)
-
-# plt.subplot(5,1,2)
-# plt.imshow(data2.reshape(250, 250), norm=norm, cmap=plt.cm.jet)
-
-# plt.subplot(5,1,3)
-# plt.imshow(data3.reshape(250, 250), norm=norm, cmap=plt.cm.jet)
-
-# plt.subplot(5,1,4)
-# plt.imshow(data4.reshape(250, 250), norm=norm, cmap=plt.cm.jet)
-
-# plt.subplot(5,1,5)
-# plt.imshow(data5.reshape(250, 250), norm=norm, cmap=plt.cm.jet)
+def linT(T1, T4, d):
+    return (T4-T1)*d/5.0 + T1
 
 
+def getT(T1, T2, T3, T4, sigma_x, sigma_y):
 
-# plt.colorbar()
-# plt.contour(data5.reshape(250, 250), 16)
-# plt.imshow(data5.reshape(250, 250), norm=norm, cmap=plt.cm.BuPu_r)
-# cax = plt.axes([])
+    x = np.arange(-12.5, 12.5, 0.1)
+    y = np.arange(-12.5, 12.5, 0.1)
+    x, y = np.meshgrid(x, y)
+    X = x
+    Y = y
+    
+    datas = []
+    n = 100
+    dt = 5.0 / n
+    for i in range(n+1):
+        d = i * dt
+        amp = linT(T1, T4, d)
+        # print amp
+        data = twoD_Gaussian(x, y, amp, 0, 0, sigma_x, sigma_y)
+        datas.append(cp(data))
 
-# plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+    dt = 0
+    for x in datas:
+        dxx = sum(x)/len(x)
+        dt += dxx
+        # print dxx
+    return dt/(n+1)
 
-# plt.contour(x, y, data.reshape(250, 250), 8, colors='w')
-plt.show()
 
-# # print data
+def rplot(T1, T2, T3, T4, sigma_x, sigma_y):
+    x = np.arange(-12.5, 12.5, 0.1)
+    y = np.arange(-12.5, 12.5, 0.1)
+    x, y = np.meshgrid(x, y)
+    X = x
+    Y = y
+    
+    datas = []
+    for i in range(6):
+        d = i * 1.0
+        amp = linT(T1, T4, d)
+        # print amp
+        data = twoD_Gaussian(x, y, amp, 0, 0, sigma_x, sigma_y)
+        datas.append(cp(data))
+
+    norm = plt.cm.colors.Normalize(vmax=3000, vmin=1500)
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
+    for i in range(6):
+        data = datas[i]
+        minx = min(data)
+        maxx = max(data)
+        nn = 32
+        delt = (maxx - minx) / nn
+        levs = []
+        for j in range(nn+1):
+            levs.append(minx + j * delt)
+        Z = data.reshape(250, 250)
+        ofs = 5 - i
+        cset = ax.contourf(X, Y, Z, zdir='z', levels=levs, offset=ofs, 
+                           norm=norm, cmap=plt.cm.jet)
+    ax.set_zlim3d(0, 5)
+    surf = ax.plot_surface(X, Y, Z, norm=norm, cmap=plt.cm.jet, shade=False)
+    fig.colorbar(surf)
+    plt.show()
+
+
+if __name__ == '__main__':
+    T1 = 3000
+    T2 = 2500
+    T3 = 2720
+    T4 = 1800
+    sigma_x, sigma_y = get_sigma(T1, T2, T3)
+    print 'Average T:', getT(T1, T2, T3, T4, sigma_x, sigma_y)
+    rplot(T1, T2, T3, T4, sigma_x, sigma_y)
 
