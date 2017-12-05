@@ -4,6 +4,7 @@
 import scipy.optimize as opt
 import numpy as np
 import pylab as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 
 # def foa(T1, T2, T3):
@@ -24,6 +25,12 @@ x = np.arange(-12.5, 12.5, 0.1)
 y = np.arange(-12.5, 12.5, 0.1)
 x, y = np.meshgrid(x, y)
 
+X = x
+Y = y 
+zz = x * 0.0
+Zs = []
+for i in range(6):
+    Zs.append(zz + i*1.0)
 
 t = 0
 sx = 20.7
@@ -38,10 +45,51 @@ print twoD_Gaussian( (12.5, 0), 3000, 0, 0, sx, sy, t, 0)
 print twoD_Gaussian( (0, 12.5), 3000, 0, 0, sx, sy, t, 0)
 print twoD_Gaussian( (5, 5), 3000, 0, 0, sx, sy, t, 0)
 
-data = twoD_Gaussian((x, y), 3000, 0, 0, sx, sy, 0, 0)*0.6
-plt.figure()
-plt.imshow(data.reshape(250, 250))
-plt.colorbar()
+data0 = twoD_Gaussian((x, y), 3000, 0, 0, sx, sy, 0, 0)
+data1 = data0*0.95
+# data2 = twoD_Gaussian((x, y), 3000, 0, 0, sx, sy, 0, 0)*0.6
+data2 = data0*0.9 
+data3 = data0*0.8
+data4 = data0*0.7
+data5 = data0*0.6
+datas= [data0, data1, data2, data3,data4, data5]
+
+# plt.figure()
+# plt.imshow(data.reshape(250, 250))
+norm = plt.cm.colors.Normalize(vmax=3000, vmin=1500)
+
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+for i in range(6):
+    Z = Zs[i]
+    data = datas[i]
+    ax.plot_surface(X, Y, Z, facecolors=plt.cm.jet(data), shade=False)
+
+
+# plt.subplot(5,1,1)
+# plt.imshow(data1.reshape(250, 250), norm=norm, cmap=plt.cm.jet)
+
+# plt.subplot(5,1,2)
+# plt.imshow(data2.reshape(250, 250), norm=norm, cmap=plt.cm.jet)
+
+# plt.subplot(5,1,3)
+# plt.imshow(data3.reshape(250, 250), norm=norm, cmap=plt.cm.jet)
+
+# plt.subplot(5,1,4)
+# plt.imshow(data4.reshape(250, 250), norm=norm, cmap=plt.cm.jet)
+
+# plt.subplot(5,1,5)
+# plt.imshow(data5.reshape(250, 250), norm=norm, cmap=plt.cm.jet)
+
+
+
+# plt.colorbar()
+# plt.contour(data5.reshape(250, 250), 16)
+# plt.imshow(data5.reshape(250, 250), norm=norm, cmap=plt.cm.BuPu_r)
+# cax = plt.axes([])
+
+# plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+
 # plt.contour(x, y, data.reshape(250, 250), 8, colors='w')
 plt.show()
 
