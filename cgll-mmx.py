@@ -61,7 +61,7 @@ def pushlocal(systemname, istep, npop):
                   '.' + ip + '/" ' + cdir + '/pbs.sh')
         jbuff = os.popen('cd ' + cdir + '; sbatch pbs.sh').read()
         # jbuff = subprocess.check_output(["cd", cdir + ";", "qsub", "pbs.sh"])
-        jid = jbuff.strip()
+        jid = jbuff.split()[-1]
         idpool.append(jid)
 
     f = open('idpool.dat', 'w')
@@ -90,7 +90,7 @@ def pushlocal2(systemname, istep, npop):
         os.system('sed -i "s/TEMPNAME/' + systemname + '.' + str(istep) +
                   '.' + str(ijob) + '/" ' + cdir + '/pbs.sh')
         jbuff = os.popen('cd ' + cdir + '; sbatch pbs.sh').read()
-        jid = jbuff.strip()
+        jid = jbuff.split()[-1]
         idpool.append(jid)
 
     f = open('idpool.dat', 'w')
@@ -225,7 +225,7 @@ def newjob(systemname, kstep, maxstep, npop):
         # subprocess.call(["./calypso.x", ">>CALYPSO.STDOUT"])
         icalys = 100
         while icalys != 0:
-            check_calypso_run()
+            check_calypso_run(istep, npop)
             icalys = os.system("srun ./calypso.x >> CALYPSO.STDOUT")
         cglstatus = 0
         dumpgcl(cglstatus)
